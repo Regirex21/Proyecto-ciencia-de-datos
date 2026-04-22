@@ -1,17 +1,65 @@
 ---
-
+import '../styles/global.css';
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Compras Impulsivas</title>
+</head>
+
+<body class="bg-gradient-to-br from-purple-600 to-indigo-700 min-h-screen text-white">
+
+<div class="max-w-6xl mx-auto px-6 py-20">
+
+<nav class="flex justify-between items-center mb-20">
+<h1 class="text-3xl font-bold">Ciencia de datos</h1>
+
+<div class="space-x-4">
+<a href="/encuesta" class="hover:underline">Encuesta</a>
+<a href="/resultados" class="hover:underline">Resultados</a>
+</div>
+</nav>
+
+<section class="grid md:grid-cols-2 gap-12 items-center">
+
+<div>
+<h2 class="text-6xl font-bold leading-tight mb-6">
+¿Qué tan manipulables somos al comprar?
+</h2>
+
+<p class="text-xl text-purple-100 mb-8">
+Analizamos emociones, publicidad, dinero y hábitos para entender las compras impulsivas mediante ciencia de datos.
+</p>
+
+<div class="flex gap-4">
+<a href="/encuesta" class="bg-white text-purple-700 px-6 py-4 rounded-xl font-bold hover:scale-105 transition">
+Responder encuesta
+</a>
+
+<a href="/resultados" class="border border-white px-6 py-4 rounded-xl font-bold hover:bg-white hover:text-purple-700 transition">
+Ver resultados
+</a>
+</div>
+</div>
+
+<div class="bg-white/10 backdrop-blur-lg p-8 rounded-3xl shadow-2xl">
+<div class="space-y-6">
+
+<div>
+<p class="text-purple-200">Variables analizadas</p>
+<p class="text-2xl font-bold">Emoción, pago, edad, publicidad</p>
+</div>
+
+<div>
+<p class="text-purple-200">Objetivo</p>
+<p class="text-2xl font-bold">Detectar patrones de impulsividad</p>
+</div>
+
+</section>
+
+</div>
+
+</body>
 </html>

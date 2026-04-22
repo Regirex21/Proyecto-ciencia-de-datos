@@ -1,0 +1,193 @@
+---
+export const prerender = false;
+
+import '../styles/global.css';
+import { supabase } from '../lib/supbase';
+
+const { data } = await supabase
+  .from('respuestas')
+  .select('*');
+
+const respuestas = data || [];
+
+const total = respuestas.length;
+
+const edades = respuestas
+  .map(r => Number(r.edad))
+  .filter(n => !isNaN(n) && n >= 15 && n <= 80);
+
+const promedioEdad =
+  edades.length
+    ? (edades.reduce((a,b)=>a+b,0) / edades.length).toFixed(1)
+    : 0;
+
+const impulsivaSi = respuestas.filter(
+  r => r.compra_impulsiva === 'Si'
+).length;
+
+const impulsivaNo = respuestas.filter(
+  r => r.compra_impulsiva === 'No'
+).length;
+
+const porcentajeImpulsiva =
+  total
+    ? ((impulsivaSi / total) * 100).toFixed(1)
+    : 0;
+
+function contar(campo: string) {
+  const mapa: Record<string, number> = {};
+
+  respuestas.forEach((r: any) => {
+    const valor = r[campo];
+
+    if (valor) {
+      mapa[valor] = (mapa[valor] || 0) + 1;
+    }
+  });
+
+  return mapa;
+}
+
+const genero = contar('genero');
+const pago = contar('metodo_pago');
+const emocion = contar('emocion');
+
+const generoLabels = Object.keys(genero);
+const generoData = Object.values(genero);
+
+const pagoLabels = Object.keys(pago);
+const pagoData = Object.values(pago);
+
+const emocionLabels = Object.keys(emocion);
+const emocionData = Object.values(emocion);
+---
+
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="refresh" content="20">
+<title>Resultados</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body class="bg-gray-100 p-10">
+
+<div class="max-w-7xl mx-auto">
+
+<h1 class="text-5xl font-bold mb-10">
+Resultados Encuesta
+</h1>
+
+<!-- KPIs -->
+<div class="grid md:grid-cols-4 gap-6 mb-10">
+
+<div class="bg-white p-6 rounded-xl shadow">
+<p class="text-gray-500">Total respuestas</p>
+<p class="text-4xl font-bold">{total}</p>
+</div>
+
+<div class="bg-white p-6 rounded-xl shadow">
+<p class="text-gray-500">Promedio edad</p>
+<p class="text-4xl font-bold">{promedioEdad}</p>
+</div>
+
+<div class="bg-white p-6 rounded-xl shadow">
+<p class="text-gray-500">% Impulsiva</p>
+<p class="text-4xl font-bold">{porcentajeImpulsiva}%</p>
+</div>
+
+<div class="bg-white p-6 rounded-xl shadow">
+<p class="text-gray-500">No impulsiva</p>
+<p class="text-4xl font-bold">{impulsivaNo}</p>
+</div>
+
+</div>
+
+<!-- Graficas -->
+<div class="grid md:grid-cols-2 gap-8">
+
+<div class="bg-white p-6 rounded-xl shadow">
+<h2 class="text-xl font-bold mb-4">Género</h2>
+<canvas id="grafGenero"></canvas>
+</div>
+
+<div class="bg-white p-6 rounded-xl shadow">
+<h2 class="text-xl font-bold mb-4">Compra impulsiva</h2>
+<canvas id="grafImpulsiva"></canvas>
+</div>
+
+<div class="bg-white p-6 rounded-xl shadow">
+<h2 class="text-xl font-bold mb-4">Método de pago</h2>
+<canvas id="grafPago"></canvas>
+</div>
+
+<div class="bg-white p-6 rounded-xl shadow">
+<h2 class="text-xl font-bold mb-4">Emoción previa</h2>
+<canvas id="grafEmocion"></canvas>
+</div>
+
+</div>
+
+</div>
+
+<script define:vars={{
+  generoLabels,
+  generoData,
+  pagoLabels,
+  pagoData,
+  emocionLabels,
+  emocionData,
+  impulsivaSi,
+  impulsivaNo
+}}>
+document.addEventListener('DOMContentLoaded', () => {
+
+  new Chart(document.getElementById('grafGenero'), {
+    type: 'bar',
+    data: {
+      labels: generoLabels,
+      datasets: [{
+        label: 'Personas',
+        data: generoData
+      }]
+    }
+  });
+
+  new Chart(document.getElementById('grafImpulsiva'), {
+    type: 'pie',
+    data: {
+      labels: ['Sí', 'No'],
+      datasets: [{
+        data: [impulsivaSi, impulsivaNo]
+      }]
+    }
+  });
+
+  new Chart(document.getElementById('grafPago'), {
+    type: 'bar',
+    data: {
+      labels: pagoLabels,
+      datasets: [{
+        label: 'Uso',
+        data: pagoData
+      }]
+    }
+  });
+
+  new Chart(document.getElementById('grafEmocion'), {
+    type: 'doughnut',
+    data: {
+      labels: emocionLabels,
+      datasets: [{
+        data: emocionData
+      }]
+    }
+  });
+
+});
+</script>
+
+</body>
+</html>
