@@ -4,81 +4,80 @@ export const prerender = false;
 import '../styles/global.css';
 import { supabase } from '../lib/supbase';
 
-const { data } = await supabase
-  .from('respuestas')
-  .select('*');
-
+const { data } = await supabase.from('respuestas').select('*');
 const respuestas = data || [];
 
 const total = respuestas.length;
 
-const edades = respuestas
-  .map(r => Number(r.edad))
-  .filter(n => !isNaN(n) && n >= 15 && n <= 80);
-
-const promedioEdad =
-  edades.length
-    ? (edades.reduce((a,b)=>a+b,0) / edades.length).toFixed(1)
-    : 0;
-
-const impulsivaSi = respuestas.filter(
-  r => r.compra_impulsiva === 'Si'
-).length;
-
-const impulsivaNo = respuestas.filter(
-  r => r.compra_impulsiva === 'No'
-).length;
-
-const porcentajeImpulsiva =
-  total
-    ? ((impulsivaSi / total) * 100).toFixed(1)
-    : 0;
+function limpiar(v: any) {
+  if (!v) return '';
+  return String(v).trim();
+}
 
 function contar(campo: string) {
   const mapa: Record<string, number> = {};
 
   respuestas.forEach((r: any) => {
-    const valor = r[campo];
-
-    if (valor) {
-      mapa[valor] = (mapa[valor] || 0) + 1;
-    }
+    const valor = limpiar(r[campo]);
+    if (valor) mapa[valor] = (mapa[valor] || 0) + 1;
   });
 
   return mapa;
 }
 
+function labels(obj: any) {
+  return Object.keys(obj);
+}
+
+function values(obj: any) {
+  return Object.values(obj);
+}
+
+const edades = respuestas
+  .map((r: any) => Number(r.edad))
+  .filter((n: number) => !isNaN(n) && n >= 15 && n <= 80);
+
+const promedioEdad = edades.length
+  ? (edades.reduce((a,b)=>a+b,0) / edades.length).toFixed(1)
+  : 0;
+
+const impulsivaSi = respuestas.filter((r:any)=>limpiar(r.compra_impulsiva)==='Si').length;
+const arrepSi = respuestas.filter((r:any)=>limpiar(r.arrepentimiento)==='Si').length;
+
+const porcentajeImp = total ? ((impulsivaSi/total)*100).toFixed(1) : 0;
+const porcentajeArr = total ? ((arrepSi/total)*100).toFixed(1) : 0;
+
 const genero = contar('genero');
-const pago = contar('metodo_pago');
+const frecuencia = contar('frecuencia');
+const tiempo = contar('tiempo');
+const productos = contar('productos');
 const emocion = contar('emocion');
-
-const generoLabels = Object.keys(genero);
-const generoData = Object.values(genero);
-
-const pagoLabels = Object.keys(pago);
-const pagoData = Object.values(pago);
-
-const emocionLabels = Object.keys(emocion);
-const emocionData = Object.values(emocion);
+const intensidad = contar('intensidad_emocion');
+const publicidad = contar('publicidad');
+const descuentos = contar('descuentos');
+const dinero = contar('dinero');
+const metodo = contar('metodo_pago');
+const credito = contar('tarjeta_credito');
+const escala = contar('escala');
+const impulsiva = contar('compra_impulsiva');
+const arrep = contar('arrepentimiento');
+const ultima = contar('ultima_compra');
 ---
 
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="refresh" content="20">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="refresh" content="30" />
 <title>Resultados</title>
-
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
-<body class="bg-gray-100 p-10">
+<body class="bg-gray-100 p-8">
 
 <div class="max-w-7xl mx-auto">
 
-<h1 class="text-5xl font-bold mb-10">
-Resultados Encuesta
-</h1>
+<h1 class="text-5xl font-bold mb-10">Resultados Encuesta</h1>
 
 <!-- KPIs -->
 <div class="grid md:grid-cols-4 gap-6 mb-10">
@@ -95,96 +94,86 @@ Resultados Encuesta
 
 <div class="bg-white p-6 rounded-xl shadow">
 <p class="text-gray-500">% Impulsiva</p>
-<p class="text-4xl font-bold">{porcentajeImpulsiva}%</p>
+<p class="text-4xl font-bold">{porcentajeImp}%</p>
 </div>
 
 <div class="bg-white p-6 rounded-xl shadow">
-<p class="text-gray-500">No impulsiva</p>
-<p class="text-4xl font-bold">{impulsivaNo}</p>
+<p class="text-gray-500">% Arrepentimiento</p>
+<p class="text-4xl font-bold">{porcentajeArr}%</p>
 </div>
 
 </div>
 
-<!-- Graficas -->
+<!-- GRAFICAS -->
 <div class="grid md:grid-cols-2 gap-8">
 
-<div class="bg-white p-6 rounded-xl shadow">
-<h2 class="text-xl font-bold mb-4">Género</h2>
-<canvas id="grafGenero"></canvas>
-</div>
+<div class="bg-white p-6 rounded-xl shadow"><h2 class="font-bold text-2xl mb-4">Género</h2><canvas id="g1"></canvas></div>
+<div class="bg-white p-6 rounded-xl shadow"><h2 class="font-bold text-2xl mb-4">Frecuencia compras no planeadas</h2><canvas id="g2"></canvas></div>
 
-<div class="bg-white p-6 rounded-xl shadow">
-<h2 class="text-xl font-bold mb-4">Compra impulsiva</h2>
-<canvas id="grafImpulsiva"></canvas>
-</div>
+<div class="bg-white p-6 rounded-xl shadow"><h2 class="font-bold text-2xl mb-4">Tiempo viendo productos</h2><canvas id="g3"></canvas></div>
+<div class="bg-white p-6 rounded-xl shadow"><h2 class="font-bold text-2xl mb-4">Productos revisados</h2><canvas id="g4"></canvas></div>
 
-<div class="bg-white p-6 rounded-xl shadow">
-<h2 class="text-xl font-bold mb-4">Método de pago</h2>
-<canvas id="grafPago"></canvas>
-</div>
+<div class="bg-white p-6 rounded-xl shadow"><h2 class="font-bold text-2xl mb-4">Emoción previa</h2><canvas id="g5"></canvas></div>
+<div class="bg-white p-6 rounded-xl shadow"><h2 class="font-bold text-2xl mb-4">Intensidad emocional</h2><canvas id="g6"></canvas></div>
 
-<div class="bg-white p-6 rounded-xl shadow">
-<h2 class="text-xl font-bold mb-4">Emoción previa</h2>
-<canvas id="grafEmocion"></canvas>
-</div>
+<div class="bg-white p-6 rounded-xl shadow"><h2 class="font-bold text-2xl mb-4">Publicidad influyente</h2><canvas id="g7"></canvas></div>
+<div class="bg-white p-6 rounded-xl shadow"><h2 class="font-bold text-2xl mb-4">Descuentos aumentaron intención</h2><canvas id="g8"></canvas></div>
+
+<div class="bg-white p-6 rounded-xl shadow"><h2 class="font-bold text-2xl mb-4">¿Tenías dinero suficiente?</h2><canvas id="g9"></canvas></div>
+<div class="bg-white p-6 rounded-xl shadow"><h2 class="font-bold text-2xl mb-4">Método de pago</h2><canvas id="g10"></canvas></div>
+
+<div class="bg-white p-6 rounded-xl shadow"><h2 class="font-bold text-2xl mb-4">Crédito sin dinero</h2><canvas id="g11"></canvas></div>
+<div class="bg-white p-6 rounded-xl shadow"><h2 class="font-bold text-2xl mb-4">Disposición a endeudarte</h2><canvas id="g12"></canvas></div>
+
+<div class="bg-white p-6 rounded-xl shadow"><h2 class="font-bold text-2xl mb-4">Compra impulsiva</h2><canvas id="g13"></canvas></div>
+<div class="bg-white p-6 rounded-xl shadow"><h2 class="font-bold text-2xl mb-4">Arrepentimiento</h2><canvas id="g14"></canvas></div>
+
+<div class="bg-white p-6 rounded-xl shadow md:col-span-2"><h2 class="font-bold text-2xl mb-4">Última compra</h2><canvas id="g15"></canvas></div>
 
 </div>
 
 </div>
 
 <script define:vars={{
-  generoLabels,
-  generoData,
-  pagoLabels,
-  pagoData,
-  emocionLabels,
-  emocionData,
-  impulsivaSi,
-  impulsivaNo
+genero, frecuencia, tiempo, productos, emocion, intensidad,
+publicidad, descuentos, dinero, metodo, credito, escala,
+impulsiva, arrep, ultima
 }}>
-document.addEventListener('DOMContentLoaded', () => {
 
-  new Chart(document.getElementById('grafGenero'), {
-    type: 'bar',
-    data: {
-      labels: generoLabels,
-      datasets: [{
-        label: 'Personas',
-        data: generoData
-      }]
-    }
-  });
+function crear(id,tipo,obj){
+new Chart(document.getElementById(id),{
+type: tipo,
+data:{
+labels:Object.keys(obj),
+datasets:[{
+label:'Cantidad',
+data:Object.values(obj)
+}]
+},
+options:{
+responsive:true,
+plugins:{legend:{display:true}}
+}
+});
+}
 
-  new Chart(document.getElementById('grafImpulsiva'), {
-    type: 'pie',
-    data: {
-      labels: ['Sí', 'No'],
-      datasets: [{
-        data: [impulsivaSi, impulsivaNo]
-      }]
-    }
-  });
+document.addEventListener('DOMContentLoaded',()=>{
 
-  new Chart(document.getElementById('grafPago'), {
-    type: 'bar',
-    data: {
-      labels: pagoLabels,
-      datasets: [{
-        label: 'Uso',
-        data: pagoData
-      }]
-    }
-  });
-
-  new Chart(document.getElementById('grafEmocion'), {
-    type: 'doughnut',
-    data: {
-      labels: emocionLabels,
-      datasets: [{
-        data: emocionData
-      }]
-    }
-  });
+crear('g1','bar',genero);
+crear('g2','bar',frecuencia);
+crear('g3','bar',tiempo);
+crear('g4','bar',productos);
+crear('g5','doughnut',emocion);
+crear('g6','line',intensidad);
+crear('g7','bar',publicidad);
+crear('g8','pie',descuentos);
+crear('g9','pie',dinero);
+crear('g10','bar',metodo);
+crear('g11','pie',credito);
+crear('g12','line',escala);
+crear('g13','pie',impulsiva);
+crear('g14','pie',arrep);
+crear('g15','bar',ultima);
 
 });
 </script>
