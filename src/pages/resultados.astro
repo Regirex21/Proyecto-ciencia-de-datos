@@ -61,7 +61,25 @@ const credito = contar('tarjeta_credito');
 const escala = contar('escala');
 const impulsiva = contar('compra_impulsiva');
 const arrep = contar('arrepentimiento');
-const ultima = contar('ultima_compra');
+function contarMultiple(campo: string) {
+  const mapa: Record<string, number> = {};
+
+  respuestas.forEach((r: any) => {
+    const valor = limpiar(r[campo]);
+    if (!valor) return;
+
+    valor.split(',').forEach((item: string) => {
+      const opcion = item.trim();
+      if (opcion) {
+        mapa[opcion] = (mapa[opcion] || 0) + 1;
+      }
+    });
+  });
+
+  return mapa;
+}
+
+const ultima = contarMultiple('ultima_compra');
 ---
 
 <html lang="es">
