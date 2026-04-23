@@ -191,7 +191,20 @@ crear('g11','pie',credito);
 crear('g12','line',escala);
 crear('g13','pie',impulsiva);
 crear('g14','pie',arrep);
-crear('g15','bar',ultima);
+new Chart(document.getElementById('g15'),{
+type:'bar',
+data:{
+labels:Object.keys(ultima),
+datasets:[{
+label:'Cantidad',
+data:Object.values(ultima)
+}]
+},
+options:{
+indexAxis:'y',
+responsive:true
+}
+});
 
 });
 </script>
